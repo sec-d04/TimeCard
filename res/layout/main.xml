@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <DatePicker
+        android:id="@+id/DatePicker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TimePicker
+        android:id="@+id/TimePicker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hapticFeedbackEnabled="false"/>
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal" >
+        <Button
+            android:id="@+id/up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="出社"/>
+        <Button
+            android:id="@+id/down"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="退社"/>
+        <Button
+            android:id="@+id/clear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="クリア"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/ScrollView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:fastScrollEnabled="true" >
+        <TextView
+            android:id="@+id/Text"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/hello"/>
+    </ScrollView>
+
+</LinearLayout>
