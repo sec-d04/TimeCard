@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string name="hello">Hello World, TimeCardActivity!</string>
+    <string name="ok">OK</string>
+    <string name="cancel">cancel</string>
     <string name="app_name">TimeCard</string>
-
+    <string name="up">出社</string>
+    <string name="down">退社</string>
+    <string name="clear">クリア</string>
+    <string name="move_start">移動開始</string>
+    <string name="move_finish">移動終了</string>
+    <string name="confirm">確認</string>
+    <string name="clear_msg">ログをクリアしますか？</string>
 </resources>
+

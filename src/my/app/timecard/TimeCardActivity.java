@@ -33,9 +33,11 @@ public class TimeCardActivity extends Activity implements
 	static private final String LOG_DIR = "/mnt/sdcard/Android/data/my.app.timecard/";
 	static private final String LOG_FILE = LOG_DIR + "log.dat";
 
-	Button mUp = null;
-	Button mDown = null;
-	Button mClear = null;
+	private Button mUp = null;
+	private Button mDown = null;
+	private Button mMoveStart = null;
+	private Button mMoveFinish = null;
+	private Button mClear = null;
 
 	DatePicker mDatePicker = null;
 	TimePicker mTimePicker = null;
@@ -51,33 +53,24 @@ public class TimeCardActivity extends Activity implements
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		// フォルダ作成
+		// ログファイル作成
 		File dir = new File(LOG_DIR);
-		// String[] list = dir.list();
-		// for (int i = 0 ; i < list.length ; i++) {
-		// Log.e(TAG, list[i]);
-		// }
-
-		boolean ret = dir.mkdir();
-		// if (!ret) {
-		// Log.e(TAG, "directory not created. : " + LOG_DIR);
-		// finish();
-		// return;
-		// }
-		File log = new File("LOG_FILE");
-		if (!log.exists()) {
-			try {
-				log.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		if (!dir.exists()) {
+			boolean ret = dir.mkdir();
+			 if (!ret) {
+				 Log.e(TAG, "directory not created. : " + LOG_DIR);	
+				 finish();
+				 return;
+			 }
 		}
-
+		
 		mDatePicker = (DatePicker) findViewById(R.id.DatePicker);
 		mTimePicker = (TimePicker) findViewById(R.id.TimePicker);
 		mLogView = (TextView) findViewById(R.id.Text);
 		mUp = (Button) findViewById(R.id.up);
 		mDown = (Button) findViewById(R.id.down);
+		mMoveStart = (Button) findViewById(R.id.move_start);
+		mMoveFinish = (Button) findViewById(R.id.move_finish);
 		mClear = (Button) findViewById(R.id.clear);
 
 		Calendar c = Calendar.getInstance();
@@ -89,38 +82,31 @@ public class TimeCardActivity extends Activity implements
 		mDatePicker.init(mYear, mMonth, mDay, this);
 		mTimePicker.setOnTimeChangedListener(this);
 
+		String ok = getString(R.string.ok);
+		String cancel = getString(R.string.cancel);
+		String confirm = getString(R.string.confirm);
+		String msg = getString(R.string.clear_msg);
 		final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
 				this);
-		alertDialogBuilder.setTitle("確認");
-		alertDialogBuilder.setMessage("クリア？");
-		alertDialogBuilder.setPositiveButton("OK",
+		alertDialogBuilder.setTitle(confirm);
+		alertDialogBuilder.setMessage(msg);
+		alertDialogBuilder.setPositiveButton(ok,
 				new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						File log = new File("LOG_FILE");
-						log.delete();
+						File log = new File(LOG_FILE);
+						boolean b = log.delete();
+						Log.d(TAG, "log  file delete : " + b);
+						mLog = "";
+						mLogView.setText("");
 					}
 				});
-		alertDialogBuilder.setNegativeButton("Cancel",
-				new android.content.DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface arg0, int arg1) {
-					}
-				});
-
-		// ダイアログを表示
+		alertDialogBuilder.setNegativeButton(cancel, null);
 		mClearDialog = alertDialogBuilder.create();
 
-		mUp.setOnClickListener(new OnClickListener() {
-			public void onClick(View arg0) {
-				writeLog("出社");
-			}
-		});
-
-		mDown.setOnClickListener(new OnClickListener() {
-			public void onClick(View arg0) {
-				writeLog("退社");
-			}
-		});
-
+		mUp.setOnClickListener(new ProccessButtonClickListener());
+		mDown.setOnClickListener(new ProccessButtonClickListener());
+		mMoveStart.setOnClickListener(new ProccessButtonClickListener());
+		mMoveFinish.setOnClickListener(new ProccessButtonClickListener());
 		mClear.setOnClickListener(new OnClickListener() {
 			public void onClick(View arg0) {
 				mClearDialog.show();
@@ -128,6 +114,13 @@ public class TimeCardActivity extends Activity implements
 		});
 
 		readLog();
+	}
+	
+	private class ProccessButtonClickListener implements OnClickListener {
+		public void onClick(View view) {
+			Button btn = (Button)view;
+			writeLog(btn.getText());
+		}
 	}
 
 	public void onDateChanged(DatePicker view, int year, int month, int day) {
@@ -175,7 +168,7 @@ public class TimeCardActivity extends Activity implements
 		mLogView.setText(mLog);
 	}
 
-	private void writeLog(String str) {
+	private void writeLog(CharSequence str) {
 		str = String.format("%04d/%02d/%02d %02d:%02d %s\n", mYear, mMonth,
 				mDay, mHour, mMin, str);
 		String temp = str + mLog;
