@@ -2,58 +2,83 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center_horizontal">"
+    android:gravity="center_horizontal"
+    android:orientation="vertical" >
+"
 
     <DatePicker
         android:id="@+id/DatePicker"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
+
     <TimePicker
         android:id="@+id/TimePicker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hapticFeedbackEnabled="false"/>
+        android:hapticFeedbackEnabled="false" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
         android:gravity="center_horizontal"
-        android:layout_marginTop="10dp">
+        android:orientation="horizontal" >
+
         <Button
             android:id="@+id/up"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/up"/>
+            android:text="@string/up" />
+
         <Button
             android:id="@+id/down"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/down"/>
+            android:text="@string/down" />
+
         <Button
             android:id="@+id/move_start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/move_start"/>
+            android:text="@string/move_start" />
+
         <Button
             android:id="@+id/move_finish"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/move_finish"/>
+            android:text="@string/move_finish" />
     </LinearLayout>
-    <Button
-        android:id="@+id/clear"
-        android:layout_width="wrap_content"
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/clear"/>
+        android:layout_marginTop="10dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/clear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/clear" />
+
+        <Button
+            android:id="@+id/mail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/mail" />
+    </LinearLayout>
+
     <ScrollView
         android:id="@+id/ScrollView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:fastScrollEnabled="true" >
+
         <TextView
             android:id="@+id/Text"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
     </ScrollView>
+
 </LinearLayout>

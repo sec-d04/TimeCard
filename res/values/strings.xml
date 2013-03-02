@@ -10,5 +10,6 @@
     <string name="move_finish">移動終了</string>
     <string name="confirm">確認</string>
     <string name="clear_msg">ログをクリアしますか？</string>
+    <string name="mail">mail</string>
 </resources>
 
