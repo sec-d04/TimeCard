@@ -30,9 +30,6 @@ public class TimeCardActivity extends Activity implements
 
 	static private final String TAG = "TimeCardActivity";
 
-	static private final String LOG_DIR = "/mnt/sdcard/Android/data/my.app.timecard/";
-	static private final String LOG_FILE = LOG_DIR + "log.dat";
-
 	private Button mUp = null;
 	private Button mDown = null;
 	private Button mMoveStart = null;
@@ -54,14 +51,9 @@ public class TimeCardActivity extends Activity implements
 		setContentView(R.layout.main);
 
 		// ログファイル作成
-		File dir = new File(LOG_DIR);
-		if (!dir.exists()) {
-			boolean ret = dir.mkdir();
-			 if (!ret) {
-				 Log.e(TAG, "directory not created. : " + LOG_DIR);	
-				 finish();
-				 return;
-			 }
+		boolean ret = LogManager.create();
+		if (!ret) {
+			finish();
 		}
 		
 		mDatePicker = (DatePicker) findViewById(R.id.DatePicker);
@@ -93,9 +85,7 @@ public class TimeCardActivity extends Activity implements
 		alertDialogBuilder.setPositiveButton(ok,
 				new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						File log = new File(LOG_FILE);
-						boolean b = log.delete();
-						Log.d(TAG, "log  file delete : " + b);
+						LogManager.delete();
 						mLog = "";
 						mLogView.setText("");
 					}
@@ -113,13 +103,19 @@ public class TimeCardActivity extends Activity implements
 			}
 		});
 
-		readLog();
+		mLog = LogManager.load();
+		mLogView.setText(mLog);
 	}
 	
 	private class ProccessButtonClickListener implements OnClickListener {
 		public void onClick(View view) {
 			Button btn = (Button)view;
-			writeLog(btn.getText());
+			
+			String str = String.format("%04d/%02d/%02d %02d:%02d %s\n", mYear, mMonth,
+					mDay, mHour, mMin, btn.getText());
+			mLog = str + mLog;
+			mLogView.setText(mLog);
+			LogManager.write(mLog);
 		}
 	}
 
@@ -134,69 +130,6 @@ public class TimeCardActivity extends Activity implements
 		mMin = min;
 	}
 
-	private void readLog() {
-		FileInputStream input = null;
-		InputStreamReader sReader = null;
-		BufferedReader bReader = null;
-		try {
-			input = new FileInputStream(LOG_FILE);
-			sReader = new InputStreamReader(input, "UTF-8");
-			bReader = new BufferedReader(sReader);
-			String str;
-			mLog = "";
-			while ((str = bReader.readLine()) != null) {
-				mLog += str + "\n";
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (bReader != null)
-					bReader.close();
-				if (sReader != null)
-					sReader.close();
-				if (input != null)
-					input.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		mLogView.setText(mLog);
-	}
 
-	private void writeLog(CharSequence str) {
-		str = String.format("%04d/%02d/%02d %02d:%02d %s\n", mYear, mMonth,
-				mDay, mHour, mMin, str);
-		String temp = str + mLog;
-		mLog = temp;
-
-		FileOutputStream output = null;
-		OutputStreamWriter writer = null;
-		try {
-			output = new FileOutputStream(LOG_FILE);
-			writer = new OutputStreamWriter(output);
-			writer.write(mLog);
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (writer != null)
-					writer.close();
-				if (output != null)
-					output.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		mLogView.setText(mLog);
-
-	}
 
 }

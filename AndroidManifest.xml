@@ -20,11 +20,21 @@
         <receiver android:name=".TimeCardWidget">
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/widget" />
+                android:resource="@xml/widget_config" />
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
         </receiver>
+        
+        <service android:name=".TimeCardWidgetService">
+            <intent-filter>
+                <action android:name="my.app.timecard.UP" />
+                <action android:name="my.app.timecard.DOWN" />
+                <action android:name="my.app.timecard.MOVE_START" />
+                <action android:name="my.app.timecard.MOVE_FINISH" />
+            </intent-filter>
+        </service>
+        
     </application>
 
 </manifest>
