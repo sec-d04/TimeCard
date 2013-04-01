@@ -11,5 +11,6 @@
     <string name="confirm">確認</string>
     <string name="clear_msg">ログをクリアしますか？</string>
     <string name="mail">mail</string>
+    <string name="set_email_msg">メールアドレスを入力してください</string>
 </resources>
 

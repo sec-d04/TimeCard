@@ -1,14 +1,5 @@
 package my.app.timecard;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 
 import android.app.Activity;
@@ -16,9 +7,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,9 +25,6 @@ public class TimeCardActivity extends Activity implements OnDateChangedListener,
 		OnTimeChangedListener {
 
 	static private final String TAG = "TimeCardActivity";
-
-	static private final String LOG_DIR = "/mnt/sdcard/Android/data/my.app.timecard/";
-	static private final String LOG_FILE = LOG_DIR + "log.dat";
 
 	private static final int MENU_ID_ADDRESS = (Menu.FIRST + 1);
 
@@ -64,14 +50,9 @@ public class TimeCardActivity extends Activity implements OnDateChangedListener,
 		setContentView(R.layout.main);
 
 		// ログファイル作成
-		File dir = new File(LOG_DIR);
-		if (!dir.exists()) {
-			boolean ret = dir.mkdir();
-			if (!ret) {
-				Log.e(TAG, "directory not created. : " + LOG_DIR);
-				finish();
-				return;
-			}
+		boolean ret = LogManager.create();
+		if (!ret) {
+			finish();
 		}
 
 		mDatePicker = (DatePicker) findViewById(R.id.DatePicker);
@@ -103,9 +84,7 @@ public class TimeCardActivity extends Activity implements OnDateChangedListener,
 		alertDialogBuilder.setPositiveButton(ok,
 				new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						File log = new File(LOG_FILE);
-						boolean b = log.delete();
-						Log.d(TAG, "log  file delete : " + b);
+						LogManager.delete();
 						mLog = "";
 						mLogView.setText("");
 					}
@@ -128,13 +107,19 @@ public class TimeCardActivity extends Activity implements OnDateChangedListener,
 			}
 		});
 
-		readLog();
+		mLog = LogManager.load();
+		mLogView.setText(mLog);
 	}
 
 	private class ProccessButtonClickListener implements OnClickListener {
 		public void onClick(View view) {
-			Button btn = (Button) view;
-			writeLog(btn.getText());
+			Button btn = (Button)view;
+			
+			String str = String.format("%04d/%02d/%02d %02d:%02d %s\n", mYear, mMonth,
+					mDay, mHour, mMin, btn.getText());
+			mLog = str + mLog;
+			mLogView.setText(mLog);
+			LogManager.write(mLog);
 		}
 	}
 
@@ -147,71 +132,6 @@ public class TimeCardActivity extends Activity implements OnDateChangedListener,
 	public void onTimeChanged(TimePicker arg0, int hour, int min) {
 		mHour = hour;
 		mMin = min;
-	}
-
-	private void readLog() {
-		FileInputStream input = null;
-		InputStreamReader sReader = null;
-		BufferedReader bReader = null;
-		try {
-			input = new FileInputStream(LOG_FILE);
-			sReader = new InputStreamReader(input, "UTF-8");
-			bReader = new BufferedReader(sReader);
-			String str;
-			mLog = "";
-			while ((str = bReader.readLine()) != null) {
-				mLog += str + "\n";
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (bReader != null)
-					bReader.close();
-				if (sReader != null)
-					sReader.close();
-				if (input != null)
-					input.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		mLogView.setText(mLog);
-	}
-
-	private void writeLog(CharSequence str) {
-		str = String.format("%04d/%02d/%02d %02d:%02d %s\n", mYear, mMonth,
-				mDay, mHour, mMin, str);
-		String temp = str + mLog;
-		mLog = temp;
-
-		FileOutputStream output = null;
-		OutputStreamWriter writer = null;
-		try {
-			output = new FileOutputStream(LOG_FILE);
-			writer = new OutputStreamWriter(output);
-			writer.write(mLog);
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (writer != null)
-					writer.close();
-				if (output != null)
-					output.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		mLogView.setText(mLog);
-
 	}
 
 	@Override
@@ -240,10 +160,10 @@ public class TimeCardActivity extends Activity implements OnDateChangedListener,
 			final EditText editView = new EditText(TimeCardActivity.this);
 			editView.setText(loadAddress());
 			new AlertDialog.Builder(this).setIcon(android.R.drawable.ic_dialog_info)
-					.setTitle("メールアドレスを入力してください")
+					.setTitle(getString(R.string.set_email_msg))
 					// setViewにてビューを設定します。
 					.setView(editView)
-					.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+					.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int whichButton) {
 							// 入力した文字をトースト出力する
 							Toast.makeText(TimeCardActivity.this, editView.getText().toString(),
@@ -251,7 +171,7 @@ public class TimeCardActivity extends Activity implements OnDateChangedListener,
 							String address = editView.getText().toString();
 							saveAddress(address);
 						}
-					}).setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+					}).setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int whichButton) {
 						}
 					}).show();
@@ -263,7 +183,6 @@ public class TimeCardActivity extends Activity implements OnDateChangedListener,
 	}
 
 	private void sendMail(String address) {
-		readLog();
 		String[] email = { address };
 		Intent intent = new Intent();
 		intent.setAction(Intent.ACTION_SEND);
