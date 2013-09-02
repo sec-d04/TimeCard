@@ -30,8 +30,16 @@ public class TimeCardWidgetService extends Service {
 
 	@Override
 	public void onStart(Intent intent, int startId) {
-		Log.d(TAG, "onStart : action = " + intent.getAction());
+		if (intent == null) {
+			Log.d(TAG, "onStart : intent = null");
+		} else {
+			Log.d(TAG, "onStart : action = " + intent.getAction());
+		}
 		super.onStart(intent, startId);
+		
+		if (intent == null) {
+			return;
+		}
 		
 		setupRemoteViews();
 		
