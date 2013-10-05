@@ -115,7 +115,7 @@ public class TimeCardActivity extends Activity implements OnDateChangedListener,
 		public void onClick(View view) {
 			Button btn = (Button)view;
 			
-			String str = String.format("%04d/%02d/%02d %02d:%02d %s\n", mYear, mMonth,
+			String str = String.format("%04d/%02d/%02d %02d:%02d %s\n", mYear, mMonth + 1,
 					mDay, mHour, mMin, btn.getText());
 			mLog = str + mLog;
 			mLogView.setText(mLog);

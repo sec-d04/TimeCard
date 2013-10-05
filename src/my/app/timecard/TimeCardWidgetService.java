@@ -65,7 +65,7 @@ public class TimeCardWidgetService extends Service {
 			int hour = c.get(Calendar.HOUR_OF_DAY);
 			int min = c.get(Calendar.MINUTE);
 	
-			String str = String.format("%04d/%02d/%02d %02d:%02d %s\n", year, month,
+			String str = String.format("%04d/%02d/%02d %02d:%02d %s\n", year, month + 1,
 					day, hour, min, term);
 			log = str + log;
 			LogManager.write(log);
