@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 public class TimeCardWidgetService extends Service {
 
@@ -37,11 +38,11 @@ public class TimeCardWidgetService extends Service {
 		}
 		super.onStart(intent, startId);
 		
+		setupRemoteViews();
+		
 		if (intent == null) {
 			return;
 		}
-		
-		setupRemoteViews();
 		
 		String action = intent.getAction();
 		String term = "";
@@ -69,16 +70,18 @@ public class TimeCardWidgetService extends Service {
 					day, hour, min, term);
 			log = str + log;
 			LogManager.write(log);
+			
+			Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
 		}
 		
 		Context context = this.getApplicationContext();
-		mRemoteViews.setTextViewText(R.id.text_log, log);
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 		ComponentName cn = new ComponentName(context, TimeCardWidget.class);
 		appWidgetManager.updateAppWidget(cn, mRemoteViews);
 	}
 	
 	private void setupRemoteViews() {
+		Log.d(TAG,"setupRemoteViews");
 		Context context = this.getApplicationContext();
 		mRemoteViews = new RemoteViews(getPackageName(), R.layout.widget);
 
