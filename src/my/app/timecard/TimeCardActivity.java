@@ -115,7 +115,7 @@ public class TimeCardActivity extends Activity {
 		CharSequence time = DateFormat.format("yyyy/MM/dd", mCurrentTime);
 		mTextDate.setText(time);
 		Log.d(TAG, "setCurrentTime : Date = " + time);
-		time = DateFormat.format("kk:mm:ss", mCurrentTime);
+		time = DateFormat.format("kk:mm", mCurrentTime);
 		mTextTime.setText(time);
 		Log.d(TAG, "setCurrentTime : time = " + time);
 	}

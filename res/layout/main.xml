@@ -3,39 +3,51 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:background="#404040" >
 
-	<TableLayout
-    	android:layout_width="match_parent"
-    	android:layout_height="wrap_content"
-	    android:gravity="center_horizontal"
-    	android:orientation="horizontal" >
-    	<TableRow >
-		    <TextView
-	            android:id="@+id/text_date"
-		        android:layout_width="match_parent"
-	            android:layout_height="wrap_content"
-	            android:text="@string/default_date_text"/>
-	        <Button
-	            android:id="@+id/change_date"
-	            android:paddingLeft="10dp"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:text="@string/change_date" />
-    	</TableRow>
-    	<TableRow >
-		    <TextView
-	            android:id="@+id/text_time"
-		        android:layout_width="match_parent"
-	            android:layout_height="wrap_content"
-	            android:text="@string/default_time_text"/>
-	        <Button
-	            android:id="@+id/change_time"
-	            android:paddingLeft="10dp"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:text="@string/change_time" />
-    	</TableRow>
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:layout_marginLeft="10dp" >
+        <TableRow >
+            <TextView
+                android:id="@+id/text_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="24sp"
+                android:textColor="#FFFFFF"
+                android:text="@string/default_date_text"/>
+            <Space
+                android:layout_width="10dp"
+                android:layout_height="match_parent"/>
+            <Button
+                android:id="@+id/change_date"
+                android:paddingLeft="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/change_date" />
+        </TableRow>
+        <TableRow >
+            <TextView
+                android:id="@+id/text_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="24sp"
+                android:textColor="#FFFFFF"
+                android:text="@string/default_time_text"/>
+            <Space
+                android:layout_width="10dp"
+                android:layout_height="match_parent"/>
+            <Button
+                android:id="@+id/change_time"
+                android:paddingLeft="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/change_time" />
+        </TableRow>
     </TableLayout>
 
     <LinearLayout
@@ -90,16 +102,21 @@
             android:text="@string/mail" />
     </LinearLayout>
 
+    <Space
+        android:layout_width="match_parent"
+           android:layout_height="10dp"/>
+
     <ScrollView
         android:id="@+id/ScrollView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:fastScrollEnabled="true" >
 
         <TextView
             android:id="@+id/text_log"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp" />
     </ScrollView>
 
 </LinearLayout>
