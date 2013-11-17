@@ -3,7 +3,7 @@
     package="my.app.timecard"
     android:versionCode="2"
     android:versionName="1.0" >
-    <uses-sdk android:minSdkVersion="10" />
+    <uses-sdk android:minSdkVersion="14" />
     
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     
