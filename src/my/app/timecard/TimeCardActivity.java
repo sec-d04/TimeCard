@@ -52,12 +52,14 @@ public class TimeCardActivity extends Activity {
 	TextView mTextDate = null;
 	TextView mTextTime = null;
 	ListView mLogView = null;
-	ArrayAdapter<String>	mAdapter = null;
+	ArrayAdapter<String> mAdapter = null;
 
 	AlertDialog mClearDialog = null;
+	AlertDialog mClearCalendarDialog = null;
 
 	List<String> mLog = null;
 	private Calendar mCurrentTime;
+	TimeCardCalendar mCalendar;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -70,6 +72,7 @@ public class TimeCardActivity extends Activity {
 			finish();
 		}
 
+		mCalendar = new TimeCardCalendar(this);
 		mLogView = (ListView) findViewById(R.id.log_list);
 		mTextDate = (TextView) findViewById(R.id.text_date);
 		mTextTime = (TextView) findViewById(R.id.text_time);
@@ -127,32 +130,33 @@ public class TimeCardActivity extends Activity {
 		mTextTime.setText(time);
 		Log.d(TAG, "setCurrentTime : time = " + time);
 	}
-	
+
 	private void createDialog() {
- 		OnDateSetListener dateListener = new OnDateSetListener(){
-			
+		OnDateSetListener dateListener = new OnDateSetListener() {
+
 			@Override
-			public void onDateSet(DatePicker view, int year, int monthOfYear,
-					int dayOfMonth) {
-				Log.d(TAG,"onDateSet : year = " + year + ", month = " + monthOfYear + ", day = " + dayOfMonth);
+			public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+				Log.d(TAG, "onDateSet : year = " + year + ", month = " + monthOfYear + ", day = "
+						+ dayOfMonth);
 				mCurrentTime.set(year, monthOfYear, dayOfMonth);
 				mCurrentTime.set(Calendar.YEAR, year);
 				mCurrentTime.set(Calendar.MONTH, monthOfYear);
 				mCurrentTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
 				setCurrentTime();
-		}};
+			}
+		};
 
 		OnTimeSetListener timeListener = new OnTimeSetListener() {
 
 			@Override
 			public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-				Log.d(TAG,"onDateSet : hour = " + hourOfDay + ", minute = " + minute);
+				Log.d(TAG, "onDateSet : hour = " + hourOfDay + ", minute = " + minute);
 				mCurrentTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
 				mCurrentTime.set(Calendar.MINUTE, minute);
 				setCurrentTime();
 			}
 		};
-		
+
 		mCurrentTime = Calendar.getInstance();
 		mDatePickerDialog = new DatePickerDialog(this, dateListener,
 				mCurrentTime.get(Calendar.YEAR),
@@ -163,7 +167,7 @@ public class TimeCardActivity extends Activity {
 				mCurrentTime.get(Calendar.MINUTE), true);
 		mDatePickerDialog.setTitle(R.string.change_date);
 		mTimePickerDialog.setTitle(R.string.change_time);
-		
+
 		String ok = getString(R.string.ok);
 		String cancel = getString(R.string.cancel);
 
@@ -178,33 +182,59 @@ public class TimeCardActivity extends Activity {
 					public void onClick(DialogInterface dialog, int which) {
 						LogManager.delete();
 						mLog.clear();
+						createAndShowCalendarConfirmDialog();
 						mAdapter.notifyDataSetChanged();
 					}
 				});
 		alertDialogBuilder.setNegativeButton(cancel, null);
 		mClearDialog = alertDialogBuilder.create();
 	}
-
+	
+	private void createAndShowCalendarConfirmDialog() {
+		// Calendarクリア確認ダイアログ
+		String ok = getString(R.string.ok);
+		String cancel = getString(R.string.cancel);
+		String confirm = getString(R.string.confirm);
+		String msg = getString(R.string.clear_msg);
+		String calendarData = mCalendar.read();
+		if (calendarData != "") {
+			msg += ("\nCalendarデータがあります。削除しますか？\n" + calendarData);
+			final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+			alertDialogBuilder.setTitle(confirm);
+			alertDialogBuilder.setMessage(msg);
+			alertDialogBuilder.setPositiveButton(ok,
+					new android.content.DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							int deleted = mCalendar.clearAll(true);
+							Toast.makeText(TimeCardActivity.this, deleted + "個のカレンダーデータを削除しました",
+									Toast.LENGTH_SHORT).show();
+						}
+					});
+			alertDialogBuilder.setNegativeButton(cancel, null);
+			mClearCalendarDialog = alertDialogBuilder.create();
+			mClearCalendarDialog.show();
+		}
+	}
+	
 	private class ProccessButtonClickListener implements OnClickListener {
 		public void onClick(View view) {
-			Button btn = (Button)view;
-			
-			String str = String.format("%s %s %s",
-					mTextDate.getText(),
-					mTextTime.getText(),
+			Button btn = (Button) view;
+
+			String str = String.format("%s %s %s", mTextDate.getText(), mTextTime.getText(),
 					btn.getText());
 			String log = LogManager.load();
-			log = str + "\n"+ log;
+			log = str + "\n" + log;
 			mLog.add(0, str);
 			mAdapter.notifyDataSetChanged();
 			LogManager.write(log);
+			mCalendar.write(mCurrentTime, btn.getText().toString());
 		}
 	}
 
 	class ListLongClickListener implements OnItemLongClickListener {
 
 		int mPosition;
-		
+
 		@Override
 		public boolean onItemLongClick(AdapterView<?> parent, View view,
 				int position, long id) {
@@ -212,10 +242,9 @@ public class TimeCardActivity extends Activity {
 			String ok = getString(R.string.ok);
 			String cancel = getString(R.string.cancel);
 			String confirm = getString(R.string.confirm);
-			
+
 			String log = mLog.get(position);
-			String msg = getString(R.string.delete_msg) + "\n"
-					+ "「" + log + "」";
+			String msg = getString(R.string.delete_msg) + "\n" + "「" + log + "」";
 
 			final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(TimeCardActivity.this);
 			alertDialogBuilder.setTitle(confirm);
@@ -234,7 +263,7 @@ public class TimeCardActivity extends Activity {
 			return false;
 		}
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// メニューアイテムを追加します
@@ -260,23 +289,28 @@ public class TimeCardActivity extends Activity {
 			// テキスト入力を受け付けるビューを作成します。
 			final EditText editView = new EditText(TimeCardActivity.this);
 			editView.setText(loadAddress());
-			new AlertDialog.Builder(this).setIcon(android.R.drawable.ic_dialog_info)
+			new AlertDialog.Builder(this)
+					.setIcon(android.R.drawable.ic_dialog_info)
 					.setTitle(getString(R.string.set_email_msg))
 					// setViewにてビューを設定します。
 					.setView(editView)
-					.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int whichButton) {
-							// 入力した文字をトースト出力する
-							Toast.makeText(TimeCardActivity.this, editView.getText().toString(),
-									Toast.LENGTH_SHORT).show();
-							String address = editView.getText().toString();
-							saveAddress(address);
-						}
-					}).setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int whichButton) {
-						}
-					}).show();
-			
+					.setPositiveButton(getString(R.string.ok),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int whichButton) {
+									// 入力した文字をトースト出力する
+									Toast.makeText(TimeCardActivity.this,
+											editView.getText().toString(), Toast.LENGTH_SHORT)
+											.show();
+									String address = editView.getText().toString();
+									saveAddress(address);
+								}
+							})
+					.setNegativeButton(getString(R.string.cancel),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int whichButton) {
+								}
+							}).show();
+
 			ret = true;
 			break;
 		}
