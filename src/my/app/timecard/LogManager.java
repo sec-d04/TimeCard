@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import android.util.Log;
 
@@ -66,7 +69,18 @@ public class LogManager {
 		return log;
 	}
 	
-
+	static public List<String> loadList() {
+		String all_log = "";
+		all_log = load();
+		ArrayList<String> list = new ArrayList<String>();
+		
+		String[] log_list = all_log.split("\n");
+		for ( int cnt = 0 ; cnt < log_list.length ; cnt++ ) {
+			list.add(log_list[cnt]);
+		}
+		return list;
+	}
+	
 	static public void write(String log) {
 
 		FileOutputStream output = null;
@@ -92,9 +106,25 @@ public class LogManager {
 		}
 	}
 	
+	static public void write(List<String> list) {
+		String all_log = "";
+		Iterator<String> it = list.iterator();
+		while(it.hasNext()) {
+			all_log += it.next() + "\n";
+		}
+		write(all_log);
+	}
+	
 	static public void delete() {
 		File log = new File(LOG_FILE);
 		boolean b = log.delete();
 		Log.d(TAG, "log  file delete : " + b);
+	}
+
+	public static void delete(int position) {
+		// TODO Auto-generated method stub
+		List<String> list = loadList();
+		list.remove(position);
+		write(list);
 	}
 }

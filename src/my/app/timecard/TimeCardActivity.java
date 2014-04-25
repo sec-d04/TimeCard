@@ -1,6 +1,7 @@
 package my.app.timecard;
 
 import java.util.Calendar;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -18,9 +19,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -45,12 +51,12 @@ public class TimeCardActivity extends Activity {
 
 	TextView mTextDate = null;
 	TextView mTextTime = null;
-	TextView mLogView = null;
-	
+	ListView mLogView = null;
+	ArrayAdapter<String>	mAdapter = null;
 
 	AlertDialog mClearDialog = null;
 
-	String mLog = new String();
+	List<String> mLog = null;
 	private Calendar mCurrentTime;
 
 	@Override
@@ -64,7 +70,7 @@ public class TimeCardActivity extends Activity {
 			finish();
 		}
 
-		mLogView = (TextView) findViewById(R.id.text_log);
+		mLogView = (ListView) findViewById(R.id.log_list);
 		mTextDate = (TextView) findViewById(R.id.text_date);
 		mTextTime = (TextView) findViewById(R.id.text_time);
 		mDateChange = (Button) findViewById(R.id.change_date);
@@ -107,8 +113,10 @@ public class TimeCardActivity extends Activity {
 		setCurrentTime();
 		createDialog();
 
-		mLog = LogManager.load();
-		mLogView.setText(mLog);
+		mLog = LogManager.loadList();
+		mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mLog);
+		mLogView.setAdapter(mAdapter);
+		mLogView.setOnItemLongClickListener(new ListLongClickListener());
 	}
 
 	private void setCurrentTime() {
@@ -169,29 +177,64 @@ public class TimeCardActivity extends Activity {
 				new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 						LogManager.delete();
-						mLog = "";
-						mLogView.setText("");
+						mLog.clear();
+						mAdapter.notifyDataSetChanged();
 					}
 				});
 		alertDialogBuilder.setNegativeButton(cancel, null);
 		mClearDialog = alertDialogBuilder.create();
-
 	}
 
 	private class ProccessButtonClickListener implements OnClickListener {
 		public void onClick(View view) {
 			Button btn = (Button)view;
 			
-			String str = String.format("%s %s %s\n",
+			String str = String.format("%s %s %s",
 					mTextDate.getText(),
 					mTextTime.getText(),
 					btn.getText());
-			mLog = str + mLog;
-			mLogView.setText(mLog);
-			LogManager.write(mLog);
+			String log = LogManager.load();
+			log = str + "\n"+ log;
+			mLog.add(0, str);
+			mAdapter.notifyDataSetChanged();
+			LogManager.write(log);
 		}
 	}
 
+	class ListLongClickListener implements OnItemLongClickListener {
+
+		int mPosition;
+		
+		@Override
+		public boolean onItemLongClick(AdapterView<?> parent, View view,
+				int position, long id) {
+			mPosition = position;
+			String ok = getString(R.string.ok);
+			String cancel = getString(R.string.cancel);
+			String confirm = getString(R.string.confirm);
+			
+			String log = mLog.get(position);
+			String msg = getString(R.string.delete_msg) + "\n"
+					+ "「" + log + "」";
+
+			final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(TimeCardActivity.this);
+			alertDialogBuilder.setTitle(confirm);
+			alertDialogBuilder.setMessage(msg);
+			alertDialogBuilder.setPositiveButton(ok,
+					new android.content.DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							LogManager.delete(mPosition);
+							mLog.remove(mPosition);
+							mAdapter.notifyDataSetChanged();
+						}
+					});
+			alertDialogBuilder.setNegativeButton(cancel, null);
+			AlertDialog deleteDialog = alertDialogBuilder.create();
+			deleteDialog.show();
+			return false;
+		}
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// メニューアイテムを追加します
@@ -241,13 +284,14 @@ public class TimeCardActivity extends Activity {
 	}
 
 	private void sendMail(String address) {
+		String log = LogManager.load();
 		String[] email = { address };
 		Intent intent = new Intent();
 		intent.setAction(Intent.ACTION_SEND);
 		intent.setType("text/plain");
 		intent.putExtra(Intent.EXTRA_EMAIL, email);
 		intent.putExtra(Intent.EXTRA_SUBJECT, "TimeCard");
-		intent.putExtra(Intent.EXTRA_TEXT, mLog);
+		intent.putExtra(Intent.EXTRA_TEXT, log);
 		startActivity(intent);
 	}
 

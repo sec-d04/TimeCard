@@ -10,6 +10,7 @@
     <string name="move_finish">移動終了</string>
     <string name="confirm">確認</string>
     <string name="clear_msg">ログをクリアしますか？</string>
+    <string name="delete_msg">削除しますか？</string>
     <string name="mail">mail</string>
     <string name="set_email_msg">メールアドレスを入力してください</string>
     
