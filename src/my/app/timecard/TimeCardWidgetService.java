@@ -56,8 +56,7 @@ public class TimeCardWidgetService extends Service {
 		} else if (action.equals(ACTION_MOVE_FINISH)) {
 			term = getString(R.string.move_finish);
 		}
-		
-		String log = LogManager.load();
+
 		if (!term.equals("")) {
 			Calendar c = Calendar.getInstance();
 			int year = c.get(Calendar.YEAR);
@@ -66,12 +65,12 @@ public class TimeCardWidgetService extends Service {
 			int hour = c.get(Calendar.HOUR_OF_DAY);
 			int min = c.get(Calendar.MINUTE);
 	
-			String str = String.format("%04d/%02d/%02d %02d:%02d %s\n", year, month + 1,
-					day, hour, min, term);
-			log = str + log;
-			LogManager.write(log);
+			String time = String.format("%04d/%02d/%02d %02d:%02d", year, month + 1,
+					day, hour, min);
+			LogDatabaseHelper db = LogDatabaseHelper.getDb(this);
+			db.write(time, term);
 			
-			Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, time + " " + term, Toast.LENGTH_SHORT).show();
 		}
 		
 		Context context = this.getApplicationContext();

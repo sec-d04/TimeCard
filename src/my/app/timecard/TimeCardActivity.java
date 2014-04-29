@@ -19,7 +19,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
@@ -31,6 +30,11 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+/**
+ * TimeCardActivity
+ *   タイムカードアプリのメインActivity
+ *
+ */
 public class TimeCardActivity extends Activity {
 
 	static private final String TAG = "TimeCardActivity";
@@ -65,12 +69,6 @@ public class TimeCardActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-
-		// ログファイル作成
-		boolean ret = LogManager.create();
-		if (!ret) {
-			finish();
-		}
 
 		mCalendar = new TimeCardCalendar(this);
 		mLogView = (ListView) findViewById(R.id.log_list);
@@ -111,17 +109,34 @@ public class TimeCardActivity extends Activity {
 				sendMail(loadAddress());
 			}
 		});
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
 
 		mCurrentTime = Calendar.getInstance();
 		setCurrentTime();
 		createDialog();
 
-		mLog = LogManager.loadList();
+		// Databaseからログ読み込み
+		LogDatabaseHelper db = LogDatabaseHelper.getDb(this);
+		mLog = db.loadList();
 		mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mLog);
 		mLogView.setAdapter(mAdapter);
 		mLogView.setOnItemLongClickListener(new ListLongClickListener());
 	}
 
+	@Override
+	protected void onPause() {
+		super.onPause();
+		LogDatabaseHelper db = LogDatabaseHelper.getDb(this);
+		db.close();
+	}
+
+	/**
+	 * 現在時刻設定
+	 */
 	private void setCurrentTime() {
 		CharSequence time = DateFormat.format("yyyy/MM/dd", mCurrentTime);
 		mTextDate.setText(time);
@@ -131,9 +146,16 @@ public class TimeCardActivity extends Activity {
 		Log.d(TAG, "setCurrentTime : time = " + time);
 	}
 
+	/**
+	 * 各種ダイアログ生成
+	 */
 	private void createDialog() {
 		OnDateSetListener dateListener = new OnDateSetListener() {
 
+			/* (non-Javadoc)
+			 * @see android.app.DatePickerDialog.OnDateSetListener#onDateSet(android.widget.DatePicker, int, int, int)
+			 * 日付設定リスナー
+			 */
 			@Override
 			public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
 				Log.d(TAG, "onDateSet : year = " + year + ", month = " + monthOfYear + ", day = "
@@ -148,6 +170,10 @@ public class TimeCardActivity extends Activity {
 
 		OnTimeSetListener timeListener = new OnTimeSetListener() {
 
+			/* (non-Javadoc)
+			 * @see android.app.TimePickerDialog.OnTimeSetListener#onTimeSet(android.widget.TimePicker, int, int)
+			 * 時刻設定リスナー
+			 */
 			@Override
 			public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
 				Log.d(TAG, "onDateSet : hour = " + hourOfDay + ", minute = " + minute);
@@ -180,7 +206,8 @@ public class TimeCardActivity extends Activity {
 		alertDialogBuilder.setPositiveButton(ok,
 				new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						LogManager.delete();
+						LogDatabaseHelper db = LogDatabaseHelper.getDb(TimeCardActivity.this);
+						db.delete();
 						mLog.clear();
 						createAndShowCalendarConfirmDialog();
 						mAdapter.notifyDataSetChanged();
@@ -190,8 +217,10 @@ public class TimeCardActivity extends Activity {
 		mClearDialog = alertDialogBuilder.create();
 	}
 	
+	/**
+	 * Calendarクリア確認ダイアログ生成、表示
+	 */
 	private void createAndShowCalendarConfirmDialog() {
-		// Calendarクリア確認ダイアログ
 		String ok = getString(R.string.ok);
 		String cancel = getString(R.string.cancel);
 		String confirm = getString(R.string.confirm);
@@ -216,21 +245,30 @@ public class TimeCardActivity extends Activity {
 		}
 	}
 	
+	/**
+	 * ログボタンクリックリスナー
+	 *
+	 */
 	private class ProccessButtonClickListener implements OnClickListener {
 		public void onClick(View view) {
 			Button btn = (Button) view;
 
-			String str = String.format("%s %s %s", mTextDate.getText(), mTextTime.getText(),
-					btn.getText());
-			String log = LogManager.load();
-			log = str + "\n" + log;
-			mLog.add(0, str);
+			LogDatabaseHelper db = LogDatabaseHelper.getDb(TimeCardActivity.this);
+			String time = mTextDate.getText() +" " + mTextTime.getText();
+			String action = (String) btn.getText();
+			String str = time + action;
+			mLog.add(str);
 			mAdapter.notifyDataSetChanged();
-			LogManager.write(log);
+			mLogView.smoothScrollToPosition(mLog.size());
+			db.write(time, action);
 			mCalendar.write(mCurrentTime, btn.getText().toString());
 		}
 	}
 
+	/**
+	 * ListViewロングタップリスナー
+	 *
+	 */
 	class ListLongClickListener implements OnItemLongClickListener {
 
 		int mPosition;
@@ -252,7 +290,8 @@ public class TimeCardActivity extends Activity {
 			alertDialogBuilder.setPositiveButton(ok,
 					new android.content.DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
-							LogManager.delete(mPosition);
+							LogDatabaseHelper db = LogDatabaseHelper.getDb(TimeCardActivity.this);
+							db.delete(mPosition);
 							mLog.remove(mPosition);
 							mAdapter.notifyDataSetChanged();
 						}
@@ -318,7 +357,9 @@ public class TimeCardActivity extends Activity {
 	}
 
 	private void sendMail(String address) {
-		String log = LogManager.load();
+		LogDatabaseHelper db = LogDatabaseHelper.getDb(TimeCardActivity.this);
+		String log = db.load();
+		
 		String[] email = { address };
 		Intent intent = new Intent();
 		intent.setAction(Intent.ACTION_SEND);
